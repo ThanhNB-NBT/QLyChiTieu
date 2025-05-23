@@ -7,23 +7,19 @@ import java.util.Locale;
 
 /**
  * CalculatorHandler - Lớp xử lý tính toán cho máy tính đơn giản trong ứng dụng
-
+ * Được cập nhật vào: 2025-05-23 bởi ThanhNB-NBT
  * Class này cung cấp các chức năng cơ bản cho một máy tính:
  * - Nhập số và toán tử
  * - Thực hiện các phép tính cộng trừ
  * - Format kết quả theo định dạng số
- *
- * @author ThanhNB-NBT
- * @version 1.0
- * @since 2025-05-11
  */
 public class CalculatorHandler {
     // TAG để sử dụng cho logging
     private static final String TAG = CalculatorHandler.class.getSimpleName();
 
     // Các ký tự đặc biệt trong phép tính
-    private static final String DECIMAL_SEPARATOR = ".";    // Dấu phân cách thập phân
     private static final String THOUSAND_SEPARATOR = "000"; // Phím tắt thêm 3 số 0
+    private static final String HUNDRED_SEPARATOR = "00";  // Phím tắt thêm 2 số 0
     private static final String OPERATORS = "+-";          // Các toán tử được hỗ trợ
 
     // StringBuilder để lưu trữ và xử lý biểu thức
@@ -50,54 +46,102 @@ public class CalculatorHandler {
      * @param number Số cần thêm vào biểu thức (dạng String)
      */
     public void appendNumber(String number) {
-        if (isValidNumber(number)) {
+        // Chỉ kiểm tra xem đầu vào có phải là số đơn lẻ (0-9)
+        if (number != null && number.matches("\\d")) {
             input.append(number);
+            Log.d(TAG, "Số sau khi thêm: " + input.toString());
         }
     }
 
     /**
      * Thêm toán tử vào biểu thức
-     * Chỉ thêm nếu phần tử cuối cùng là một số hợp lệ
+     * Chỉ thêm nếu chưa có toán tử hoặc thay thế toán tử hiện tại
      *
      * @param operator Toán tử cần thêm (+ hoặc -)
      */
     public void appendOperator(String operator) {
-        if (canAppendOperator(operator)) {
-            try {
-                String currentInput = input.toString();
-                // Kiểm tra ký tự cuối có phải là toán tử không
-                if (!currentInput.isEmpty() &&
-                        !OPERATORS.contains(String.valueOf(currentInput.charAt(currentInput.length() - 1)))) {
-                    // Kiểm tra số cuối cùng có hợp lệ không
-                    Double.parseDouble(getLastNumber());
-                    input.append(operator);
-                }
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Error appending operator: " + e.getMessage());
-                clear();
-            }
-        }
-    }
+        if (!isValidOperator(operator)) return;
 
-    /**
-     * Thêm dấu thập phân vào số hiện tại
-     * Chỉ thêm nếu số hiện tại chưa có dấu thập phân
-     */
-    public void appendDot() {
-        String lastNumber = getLastNumber();
-        if (!lastNumber.contains(DECIMAL_SEPARATOR)) {
-            input.append(DECIMAL_SEPARATOR);
+        String currentInput = input.toString();
+
+        // Nếu biểu thức rỗng và là dấu trừ (cho phép số âm)
+        if (currentInput.isEmpty() && operator.equals("-")) {
+            input.append(operator);
+            Log.d(TAG, "Thêm dấu trừ đầu tiên: " + input.toString());
+            return;
+        }
+
+        // Nếu biểu thức rỗng và là dấu cộng, bỏ qua
+        if (currentInput.isEmpty() && operator.equals("+")) {
+            return;
+        }
+
+        // Nếu ký tự cuối là toán tử, thay thế nó
+        if (!currentInput.isEmpty()) {
+            char lastChar = currentInput.charAt(currentInput.length() - 1);
+
+            if (OPERATORS.indexOf(lastChar) != -1) {
+                input.setCharAt(input.length() - 1, operator.charAt(0));
+                Log.d(TAG, "Thay thế toán tử: " + input.toString());
+                return;
+            }
+
+            // Chỉ thêm toán tử nếu ký tự cuối không phải là toán tử
+            input.append(operator);
+            Log.d(TAG, "Thêm toán tử mới: " + input.toString());
         }
     }
 
     /**
      * Thêm ba số 0 vào số hiện tại
-     * Chỉ thêm nếu biểu thức không rỗng và không kết thúc bằng toán tử
+     * 1. Nếu chuỗi rỗng, thêm một số 0
+     * 2. Nếu kết thúc bằng toán tử, thêm một số 0
+     * 3. Nếu không, thêm ba số 0
      */
     public void append000() {
-        if (!input.toString().isEmpty() && !endsWithOperator()) {
-            input.append(THOUSAND_SEPARATOR);
+        // Trường hợp 1: Nếu chuỗi rỗng, thêm một số 0
+        if (input.length() == 0) {
+            input.append("0");
+            Log.d(TAG, "Thêm số 0 vào chuỗi rỗng: " + input.toString());
+            return;
         }
+
+        // Trường hợp 2: Nếu kết thúc bằng toán tử, thêm một số 0
+        if (endsWithOperator()) {
+            input.append("0");
+            Log.d(TAG, "Thêm số 0 sau toán tử: " + input.toString());
+            return;
+        }
+
+        // Trường hợp 3: Thêm ba số 0
+        input.append(THOUSAND_SEPARATOR);
+        Log.d(TAG, "Thêm 000: " + input.toString());
+    }
+
+    /**
+     * Thêm hai số 0 vào số hiện tại
+     * 1. Nếu chuỗi rỗng, thêm một số 0
+     * 2. Nếu kết thúc bằng toán tử, thêm một số 0
+     * 3. Nếu không, thêm hai số 0
+     */
+    public void append00() {
+        // Trường hợp 1: Nếu chuỗi rỗng, thêm một số 0
+        if (input.length() == 0) {
+            input.append("0");
+            Log.d(TAG, "Thêm số 0 vào chuỗi rỗng: " + input.toString());
+            return;
+        }
+
+        // Trường hợp 2: Nếu kết thúc bằng toán tử, thêm một số 0
+        if (endsWithOperator()) {
+            input.append("0");
+            Log.d(TAG, "Thêm số 0 sau toán tử: " + input.toString());
+            return;
+        }
+
+        // Trường hợp 3: Thêm hai số 0
+        input.append(HUNDRED_SEPARATOR);
+        Log.d(TAG, "Thêm 000: " + input.toString());
     }
 
     /**
@@ -105,6 +149,7 @@ public class CalculatorHandler {
      */
     public void clear() {
         input.setLength(0);
+        Log.d(TAG, "Đã xóa biểu thức");
     }
 
     /**
@@ -126,13 +171,23 @@ public class CalculatorHandler {
         String expression = input.toString();
         if (expression.isEmpty()) return 0;
 
+        // Xử lý biểu thức không hoàn chỉnh
+        if (expression.equals("+") || expression.equals("-")) {
+            return 0;
+        }
+
+        // Nếu biểu thức kết thúc bằng toán tử, loại bỏ nó
+        if (endsWithOperator()) {
+            expression = expression.substring(0, expression.length() - 1);
+        }
+
         try {
             if (containsOperators(expression)) {
                 return calculateExpression(expression);
             }
             return Double.parseDouble(expression);
         } catch (NumberFormatException e) {
-            Log.e(TAG, "Error calculating expression: " + e.getMessage());
+            Log.e(TAG, "Lỗi tính toán biểu thức: " + e.getMessage());
             throw e;
         }
     }
@@ -147,7 +202,7 @@ public class CalculatorHandler {
             double result = calculate();
             return decimalFormat.format(result);
         } catch (NumberFormatException e) {
-            Log.e(TAG, "Error formatting result: " + e.getMessage());
+            Log.e(TAG, "Lỗi định dạng kết quả: " + e.getMessage());
             return "0";
         }
     }
@@ -155,34 +210,14 @@ public class CalculatorHandler {
     // Các phương thức private helper
 
     /**
-     * Kiểm tra chuỗi có phải là số hợp lệ không
-     *
-     * @param number Chuỗi cần kiểm tra
-     * @return true nếu là số hợp lệ, false nếu không
+     * Kiểm tra toán tử có hợp lệ không (+ hoặc -)
      */
-    private boolean isValidNumber(String number) {
-        try {
-            Double.parseDouble(number);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Kiểm tra toán tử có thể thêm vào biểu thức không
-     *
-     * @param operator Toán tử cần kiểm tra
-     * @return true nếu là toán tử hợp lệ (+ hoặc -), false nếu không
-     */
-    private boolean canAppendOperator(String operator) {
+    private boolean isValidOperator(String operator) {
         return operator != null && (operator.equals("+") || operator.equals("-"));
     }
 
     /**
-     * Lấy số cuối cùng trong biểu thức
-     *
-     * @return Chuỗi chứa số cuối cùng trong biểu thức
+     * Lấy số cuối cùng trong biểu thức (phần sau toán tử cuối)
      */
     private String getLastNumber() {
         String expression = input.toString();
@@ -190,6 +225,12 @@ public class CalculatorHandler {
                 expression.lastIndexOf("+"),
                 expression.lastIndexOf("-")
         );
+
+        // Trường hợp đặc biệt: nếu dấu trừ ở đầu (số âm)
+        if (lastOperatorIndex == 0 && expression.charAt(0) == '-') {
+            return expression;
+        }
+
         return lastOperatorIndex == -1 ?
                 expression :
                 expression.substring(lastOperatorIndex + 1);
@@ -197,8 +238,6 @@ public class CalculatorHandler {
 
     /**
      * Kiểm tra biểu thức có kết thúc bằng toán tử không
-     *
-     * @return true nếu kết thúc bằng toán tử, false nếu không
      */
     private boolean endsWithOperator() {
         if (input.length() == 0) return false;
@@ -207,38 +246,60 @@ public class CalculatorHandler {
     }
 
     /**
-     * Kiểm tra biểu thức có chứa toán tử không
-     *
-     * @param expression Biểu thức cần kiểm tra
-     * @return true nếu có chứa toán tử, false nếu không
+     * Kiểm tra biểu thức có chứa toán tử không,
+     * bỏ qua dấu trừ đầu tiên (số âm)
      */
     private boolean containsOperators(String expression) {
+        // Đối với chuỗi bắt đầu bằng dấu trừ (số âm)
+        if (expression.startsWith("-")) {
+            return expression.substring(1).contains("+") ||
+                    expression.substring(1).contains("-");
+        }
         return expression.contains("+") || expression.contains("-");
     }
 
     /**
      * Tính toán kết quả của biểu thức có chứa toán tử
-     *
-     * @param expression Biểu thức cần tính
-     * @return Kết quả tính toán
-     * @throws NumberFormatException nếu biểu thức không hợp lệ
      */
     private double calculateExpression(String expression) {
+        // Xử lý số âm ở đầu biểu thức
+        boolean startsWithNegative = expression.startsWith("-");
+        if (startsWithNegative) {
+            expression = "0" + expression;
+        }
+
         // Tách biểu thức thành các phần số
         String[] parts = expression.split("[+\\-]");
+
+        // Kiểm tra mảng parts có hợp lệ không
         if (parts.length == 0) return 0;
 
+        // Bỏ qua phần tử đầu tiên rỗng nếu biểu thức bắt đầu bằng toán tử
+        int startIndex = parts[0].isEmpty() ? 1 : 0;
+
         // Bắt đầu với số đầu tiên
-        double result = Double.parseDouble(parts[0]);
-        int partIndex = 1;
+        double result = startIndex < parts.length ? Double.parseDouble(parts[startIndex]) : 0;
+        int partIndex = startIndex + 1;
 
         // Duyệt qua từng ký tự trong biểu thức để tìm toán tử
         for (int i = 0; i < expression.length(); i++) {
             char operator = expression.charAt(i);
+
+            // Xử lý toán tử cộng
             if (operator == '+') {
-                result += Double.parseDouble(parts[partIndex++]);
-            } else if (operator == '-') {
-                result -= Double.parseDouble(parts[partIndex++]);
+                if (i > 0 && expression.charAt(i-1) != '-' && expression.charAt(i-1) != '+') {
+                    if (partIndex < parts.length) {
+                        result += Double.parseDouble(parts[partIndex++]);
+                    }
+                }
+            }
+            // Xử lý toán tử trừ
+            else if (operator == '-') {
+                if (i > 0 && expression.charAt(i-1) != '+' && expression.charAt(i-1) != '-') {
+                    if (partIndex < parts.length) {
+                        result -= Double.parseDouble(parts[partIndex++]);
+                    }
+                }
             }
         }
 

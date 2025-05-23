@@ -250,7 +250,6 @@ public class ExportImportActivity extends AppCompatActivity {
      * Nhập dữ liệu từ URI đã chọn
      */
     private void importDataFromUri(Uri uri) {
-        // Sử dụng MaterialAlertDialogBuilder thay vì ProgressDialog
         AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
                 .setTitle("Đang nhập dữ liệu")
                 .setMessage("Vui lòng đợi...")

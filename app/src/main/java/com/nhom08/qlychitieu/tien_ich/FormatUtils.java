@@ -92,7 +92,13 @@ public class FormatUtils {
         }
     }
 
-    // Định dạng số tiền
+    /**
+     * Định dạng số tiền theo cấu hình tiền tệ của người dùng
+     * Tự động loại bỏ phần thập phân nếu nó là .00
+     * @param context Context để truy cập cài đặt người dùng
+     * @param amount Số tiền cần định dạng
+     * @return Chuỗi đã định dạng theo kiểu tiền tệ
+     */
     public static String formatCurrency(Context context, double amount) {
         String currencyCode = getCurrencyCode(context);
         int formatStyle = getNumberFormatStyle(context);
@@ -100,11 +106,23 @@ public class FormatUtils {
         try {
             Currency currency = Currency.getInstance(currencyCode);
 
+            // Kiểm tra xem số có phần thập phân không (.00)
+            boolean isWholeNumber = amount == Math.floor(amount);
+            String formatPattern = isWholeNumber ? "%,.0f" : "%,.2f";
+
             switch (formatStyle) {
                 case FORMAT_STYLE_EU:
-                    // European format (1.234,56)
-                    String euFormat = String.format("%,.2f", amount).replace(",", "X").replace(".", ",").replace("X", ".");
-                    return euFormat + " " + currency.getSymbol();
+                    // European format (1.234,56 or 1.234)
+                    String result;
+                    if (isWholeNumber) {
+                        // Nếu là số nguyên, không hiển thị phần thập phân
+                        result = String.format(Locale.GERMAN, "%,.0f", amount);
+                    } else {
+                        // Nếu có phần thập phân, hiển thị 2 chữ số
+                        result = String.format(Locale.GERMAN, "%,.2f", amount);
+                    }
+                    return result + " " + currency.getSymbol();
+
                 case FORMAT_STYLE_COMPACT:
                     // Compact format (1K, 1M)
                     if (amount >= 1_000_000_000) {
@@ -114,16 +132,20 @@ public class FormatUtils {
                     } else if (amount >= 1_000) {
                         return String.format("%.1fK %s", amount / 1_000, currency.getSymbol());
                     } else {
-                        return String.format("%,.2f %s", amount, currency.getSymbol());
+                        // Sử dụng format pattern dựa trên kiểu số
+                        return String.format(formatPattern + " %s", amount, currency.getSymbol());
                     }
+
                 case FORMAT_STYLE_US:
                 default:
-                    // US format (1,234.56)
-                    return String.format("%,.2f %s", amount, currency.getSymbol());
+                    // US format (1,234.56 or 1,234)
+                    return String.format(formatPattern + " %s", amount, currency.getSymbol());
             }
         } catch (Exception e) {
             // Fallback formatting if there's any error
-            return String.format("%,.2f %s", amount, currencyCode);
+            boolean isWholeNumber = amount == Math.floor(amount);
+            String formatPattern = isWholeNumber ? "%,.0f" : "%,.2f";
+            return String.format(formatPattern + " %s", amount, currencyCode);
         }
     }
 

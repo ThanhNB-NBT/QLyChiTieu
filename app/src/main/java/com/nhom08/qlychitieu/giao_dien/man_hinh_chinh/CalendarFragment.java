@@ -29,6 +29,7 @@ import com.nhom08.qlychitieu.mo_hinh.Category;
 import com.nhom08.qlychitieu.mo_hinh.DailyTransaction;
 import com.nhom08.qlychitieu.mo_hinh.Transaction;
 import com.nhom08.qlychitieu.tien_ich.Constants;
+import com.nhom08.qlychitieu.tien_ich.FormatUtils;
 import com.nhom08.qlychitieu.tien_ich.MessageUtils;
 
 import java.text.NumberFormat;
@@ -238,11 +239,10 @@ public class CalendarFragment extends Fragment implements CalendarDayAdapter.OnD
      */
     private void capNhatNganSachTrungBinh(double monthlyBudget) {
         int daysInMonth = selectedCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        double dailyBudget = monthlyBudget / daysInMonth;
+        long dailyBudget = (long) (monthlyBudget / daysInMonth);
 
-        NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
         binding.tvAverageBudget.setText(
-                "Ngân sách trung bình hằng ngày: " + nf.format(dailyBudget)
+                "Ngân sách trung bình hằng ngày: " + FormatUtils.formatCurrency(requireContext(), dailyBudget)
         );
     }
 

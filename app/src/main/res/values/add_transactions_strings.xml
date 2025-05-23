@@ -24,7 +24,7 @@
     <string name="btnPlus">+</string>
     <string name="btnMinus">-</string>
     <string name="number000">000</string>
-    <string name="btnDot"> . </string>
+    <string name="number00">00</string>
     <string name="camera_icon">Biểu tượng camera</string>
     <string name="btnClear">C</string>
     <string name="no_categoies">Không có danh mục nào</string>

@@ -22,6 +22,7 @@ import com.nhom08.qlychitieu.mo_hinh.Transaction;
 import com.nhom08.qlychitieu.mo_hinh.Transaction_DateRange;
 import com.nhom08.qlychitieu.tien_ich.Constants;
 import com.nhom08.qlychitieu.tien_ich.DateTimeUtils;
+import com.nhom08.qlychitieu.tien_ich.FormatUtils;
 import com.nhom08.qlychitieu.tien_ich.MessageUtils;
 
 import java.util.*;
@@ -71,7 +72,7 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        khoiTao();
+        khoiTaoBienToanCuc();
         thietLapGiaoDien();
         return binding.getRoot();
     }
@@ -79,7 +80,7 @@ public class HomeFragment extends Fragment {
     /**
      * Khởi tạo các thành phần cần thiết cho fragment
      */
-    private void khoiTao() {
+    private void khoiTaoBienToanCuc() {
         myApp = (MyApplication) requireActivity().getApplication();
         database = myApp.getDatabase();
         executorService = myApp.getExecutorService();
@@ -98,7 +99,6 @@ public class HomeFragment extends Fragment {
         transactionAdapter.setOnTransactionDeleteListener(transaction -> {
             executorService.execute(() -> {
                 myApp.getDatabase().transactionDao().deleteTransaction(transaction);
-                // Room sẽ tự động update LiveData
             });
         });
 
@@ -277,15 +277,17 @@ public class HomeFragment extends Fragment {
 
     /**
      * Cập nhật tổng chi tiêu, thu nhập và số dư theo tháng
+     * Sử dụng FormatUtils để định dạng tiền tệ theo cấu hình người dùng
      * @param totalExpense Tổng chi tiêu
      * @param totalIncome Tổng thu nhập
      */
     private void capNhatTongThang(double totalExpense, double totalIncome) {
         if (!isAdded() || getActivity() == null || binding == null) return;
         requireActivity().runOnUiThread(() -> {
-            binding.tvExpense.setText(String.format(Locale.getDefault(), "%,d", (long) totalExpense));
-            binding.tvIncome.setText(String.format(Locale.getDefault(), "%,d", (long) totalIncome));
-            binding.tvBalance.setText(String.format(Locale.getDefault(), "%,d", (long) (totalIncome - totalExpense)));
+            // Sử dụng FormatUtils để định dạng tiền tệ theo cấu hình người dùng
+            binding.tvExpense.setText(FormatUtils.formatCurrency(requireContext(), totalExpense));
+            binding.tvIncome.setText(FormatUtils.formatCurrency(requireContext(), totalIncome));
+            binding.tvBalance.setText(FormatUtils.formatCurrency(requireContext(), totalIncome - totalExpense));
         });
     }
 

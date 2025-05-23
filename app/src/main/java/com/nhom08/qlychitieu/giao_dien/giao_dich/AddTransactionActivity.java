@@ -218,59 +218,64 @@ public class AddTransactionActivity extends AppCompatActivity {
     }
 
     /**
+     * Tạo hiệu ứng nhấn cho nút
+     * @param view Nút được nhấn
+     */
+    private void animateButtonPress(View view) {
+        view.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50).withEndAction(() ->
+                view.animate().scaleX(1f).scaleY(1f).setDuration(50)
+        );
+    }
+
+    /**
      * Thiết lập các nút số cho máy tính
      */
     private void thietLapCacNutSo() {
         int[] numberButtonIds = {
                 R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3,
                 R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7,
-                R.id.btn8, R.id.btn9, R.id.btn000, R.id.btnDot
+                R.id.btn8, R.id.btn9, R.id.btn000, R.id.btn00
         };
 
         for (int id : numberButtonIds) {
-            binding.getRoot().findViewById(id).setOnClickListener(v -> {
+            View button = binding.getRoot().findViewById(id);
+            button.setOnClickListener(v -> {
+                // Tạo hiệu ứng nhấn
+                animateButtonPress(v);
+
+                // Giữ nguyên logic xử lý số hiện tại
                 String value = ((android.widget.Button) v).getText().toString();
-                xuLyNhapSo(value);
+                switch (value) {
+                    case "00":
+                        calculatorHandler.append00();
+                        break;
+                    case "000":
+                        calculatorHandler.append000();
+                        break;
+                    default:
+                        calculatorHandler.appendNumber(value);
+                        break;
+                }
+                capNhatHienThiSoTien();
             });
         }
-    }
-
-    /**
-     * Xử lý khi người dùng nhấn các nút số
-     * @param value Giá trị của nút được nhấn
-     */
-    private void xuLyNhapSo(String value) {
-        switch (value) {
-            case ".":
-                calculatorHandler.appendDot();
-                break;
-            case "000":
-                calculatorHandler.append000();
-                break;
-            default:
-                calculatorHandler.appendNumber(value);
-                break;
-        }
-        capNhatHienThiSoTien();
     }
 
     /**
      * Thiết lập các nút phép toán (+, -)
      */
     private void thietLapCacNutPhepToan() {
-        binding.btnPlus.setOnClickListener(v ->
-                xuLyPhepToan("+"));
-        binding.btnMinus.setOnClickListener(v ->
-                xuLyPhepToan("-"));
-    }
+        binding.btnPlus.setOnClickListener(v -> {
+            animateButtonPress(v);
+            calculatorHandler.appendOperator("+");
+            capNhatHienThiSoTien();
+        });
 
-    /**
-     * Xử lý khi người dùng nhấn các nút phép toán
-     * @param operator Phép toán được chọn (+, -)
-     */
-    private void xuLyPhepToan(String operator) {
-        calculatorHandler.appendOperator(operator);
-        capNhatHienThiSoTien();
+        binding.btnMinus.setOnClickListener(v -> {
+            animateButtonPress(v);
+            calculatorHandler.appendOperator("-");
+            capNhatHienThiSoTien();
+        });
     }
 
     /**
@@ -278,10 +283,15 @@ public class AddTransactionActivity extends AppCompatActivity {
      */
     private void thietLapCacNutHanhDong() {
         binding.btnClear.setOnClickListener(v -> {
+            animateButtonPress(v);
             calculatorHandler.clear();
             capNhatHienThiSoTien();
         });
-        binding.btnDone.setOnClickListener(v -> luuGiaoDich());
+
+        binding.btnDone.setOnClickListener(v -> {
+            animateButtonPress(v);
+            luuGiaoDich();
+        });
     }
 
     /**
