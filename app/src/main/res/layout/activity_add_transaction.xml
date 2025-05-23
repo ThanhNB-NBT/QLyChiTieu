@@ -355,9 +355,9 @@
                 android:text="@string/number0" />
 
             <Button
-                android:id="@+id/btnDot"
+                android:id="@+id/btn00"
                 style="@style/KeypadButton"
-                android:text="@string/btnDot" />
+                android:text="@string/number00" />
 
             <Button
                 android:id="@+id/btn000"

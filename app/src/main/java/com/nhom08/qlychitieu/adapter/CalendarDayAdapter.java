@@ -13,6 +13,7 @@ import com.nhom08.qlychitieu.databinding.ItemCalendarDayBinding;
 import com.nhom08.qlychitieu.mo_hinh.Category;
 import com.nhom08.qlychitieu.mo_hinh.Transaction;
 import com.nhom08.qlychitieu.tien_ich.Constants;
+import com.nhom08.qlychitieu.tien_ich.FormatUtils;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -77,18 +78,17 @@ public class CalendarDayAdapter extends RecyclerView.Adapter<CalendarDayAdapter.
         // Hiển thị thu chi nếu có
         DaySummary summary = daySummaryMap.get(day);
         if (summary != null) {
-            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
 
             if (summary.expense > 0) {
                 holder.binding.tvExpense.setVisibility(View.VISIBLE);
-                holder.binding.tvExpense.setText(nf.format((long)summary.expense));
+                holder.binding.tvExpense.setText(FormatUtils.formatCurrency(context, (long)summary.expense));
             } else {
                 holder.binding.tvExpense.setVisibility(View.GONE);
             }
 
             if (summary.income > 0) {
                 holder.binding.tvIncome.setVisibility(View.VISIBLE);
-                holder.binding.tvIncome.setText(nf.format((long)summary.income));
+                holder.binding.tvIncome.setText(FormatUtils.formatCurrency(context, (long)summary.income));
             } else {
                 holder.binding.tvIncome.setVisibility(View.GONE);
             }
